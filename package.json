@@ -1,0 +1,21 @@
+{
+  "name": "veo-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Video generator site with a proxied upstream backend and an external API key system",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "probe": "node probe.js",
+    "test": "node test.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "pg": "^8.23.1",
+    "redis": "^6.3.1",
+    "undici": "^8.12.4"
+  }
+}

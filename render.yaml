@@ -1,0 +1,76 @@
+services:
+  - type: web
+    name: veo-proxy
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+
+    envVars:
+      # undici@8 (нужен для прокси-запросов) требует Node со встроенным zstd —
+      # это Node 24+. На Node 20 сервер падает с "createZstdDecompress.bind".
+      - key: NODE_VERSION
+        value: 24
+
+      # Storage lives in the Key Value instance below — a separate resource, so
+      # this service redeploying or spinning down never wipes the keys or history.
+      - key: REDIS_HOST
+        fromService:
+          name: veo-store
+          type: keyvalue
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: veo-store
+          type: keyvalue
+          property: port
+
+      # per-key daily cap (upstream still has its own IP/day limit)
+      - key: KEY_DAILY_LIMIT
+        value: 100
+      # set to your real domain to restrict browser callers, "*" allows everyone
+      - key: CORS_ORIGIN
+        value: "*"
+
+      # outgoing address pool — upstream limits generations per IP per day, so
+      # the route switches to another address once the direct one is refused.
+      # onlimit = only after a limit (default), always / off to override.
+      - key: PROXY_MODE
+        value: onlimit
+      # paste your own addresses here (comma or newline separated) for a pool
+      # you control. Left empty, the service pulls a free public list itself.
+      # - key: PROXY_LIST
+      #   value: http://1.2.3.4:8080,http://5.6.7.8:3128
+
+      # --- free web services have no persistent disk, so downloaded videos live
+      # --- on the instance disk and are wiped on each deploy. They are re-pulled
+      # --- from the upstream CDN when missing. Enable both lines below only on a
+      # --- paid plan with a disk attached.
+
+      # - key: DATA_DIR
+      #   value: /var/data
+      # - key: VIDEOS_DIR
+      #   value: /var/data/videos
+
+    # --- persistent disk: NOT available on the free plan, Render rejects the
+    # --- blueprint if it is enabled there. Uncomment on a paid instance type.
+
+    # disk:
+    #   name: veo-data
+    #   mountPath: /var/data
+    #   sizeGB: 5
+
+  # Free Key Value instance. Not a database — no schema, no migrations, no
+  # credentials to paste, created automatically by this same file.
+  #   * separate instance: a web deploy/spin-down cannot touch its data
+  #   * 25 MB, enough for keys + job history (video bytes are not stored here)
+  #   * noeviction so entries are never silently dropped under memory pressure
+  #   * ipAllowList [] = reachable only from inside this workspace
+  - type: keyvalue
+    name: veo-store
+    plan: free
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
