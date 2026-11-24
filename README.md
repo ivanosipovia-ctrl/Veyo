@@ -54,9 +54,9 @@ npm run dev     # node --watch, перезапуск на каждом сохр�
 
 1. Открой https://dashboard.render.com → **New +** → **Blueprint**.
 2. **Connect a repository** → выбери только что созданный `veo-proxy`.
-3. Render прочитает `render.yaml` и покажет два ресурса: `veo-proxy` (web) и
+3. Render прочитает `render.yaml` и покажет два ресурса: `kinopoiskai` (web) и
    `veo-store` (Key Value). Жми **Apply**.
-4. Дождись деплоя, открой **Logs** сервиса `veo-proxy` — в строках `storage`
+4. Дождись деплоя, открой **Logs** сервиса `kinopoiskai` — в строках `storage`
    должно быть `key value`, а не `file`.
 
 Всё. Ключи API создаются вкладкой **API** на сайте и хранятся в `veo-store` —

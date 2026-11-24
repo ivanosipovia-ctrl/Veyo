@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: veo-proxy
+    name: kinopoiskai
     runtime: node
     plan: free
     buildCommand: npm install
